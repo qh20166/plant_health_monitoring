@@ -1,0 +1,131 @@
+.info-box {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(145deg, #ffffff, #f8f9fc);
+  border: 1px solid #e3e8f1;
+  border-radius: 12px;
+  padding: 16px;
+  width: 180px;
+  height: 100px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  position: relative;
+  overflow: hidden;
+}
+
+.info-box:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 12px -2px rgba(33, 150, 243, 0.1);
+}
+
+.info-box::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: #2196F3;
+  border-radius: 12px 0 0 12px;
+}
+
+
+.info-text {
+  text-align: left;
+}
+
+.info-text label {
+  font-weight: bold;
+  display: block;
+  margin-bottom: 10px;
+  font-size: 18px;
+}
+
+.info-text p {
+  margin: 0;
+  font-size: 15px;
+}
+
+.info-icon img {
+  width: 40px;
+  height: 40px;
+}
+
+
+.info-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 48px;
+  height: 24px;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #e2e8f0;
+  transition: 0.4s;
+  border-radius: 24px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 2px;
+  bottom: 2px;
+  background-color: white;
+  transition: 0.4s;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.toggle-switch input:checked + .slider {
+  background: linear-gradient(145deg, #2196F3, #1976D2);
+}
+
+.toggle-switch input:checked + .slider:before {
+  transform: translateX(24px);
+}
+
+.info-button {
+  background: linear-gradient(145deg, #2196F3, #1976D2);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.info-button:hover {
+  background: linear-gradient(145deg, #1976D2, #2196F3);
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.2);
+}
+
+.info-button:active {
+  transform: scale(0.98);
+}

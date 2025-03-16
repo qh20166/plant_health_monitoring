@@ -1,0 +1,237 @@
+/* ========== SIGNUP PAGE ========== */
+.signup-page {
+    font-family: 'Inter', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 2rem;
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .signup-page::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, rgba(92, 184, 92, 0.1) 0%, rgba(42, 157, 143, 0.1) 100%);
+    animation: rotate 20s linear infinite;
+  }
+  
+  @keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  
+  /* ========== SIGNUP CONTAINER ========== */
+  .signup-container {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 2.5rem;
+    border-radius: 1.5rem;
+    box-shadow: 0 8px 32px rgba(0, 75, 35, 0.1);
+    width: 100%;
+    max-width: 900px;
+    position: relative;
+    z-index: 1;
+    backdrop-filter: blur(10px);
+    transform: translateY(0);
+    transition: all 0.3s ease;
+  }
+  
+  .signup-container:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 40px rgba(0, 75, 35, 0.15);
+  }
+  
+  /* ========== TYPOGRAPHY ========== */
+  .signup-container h1 {
+    margin-bottom: 2.5rem;
+    font-size: clamp(2rem, 5vw, 2.8rem);
+    color: #2d6a4f;
+    font-weight: 600;
+    text-align: center;
+    position: relative;
+    padding-bottom: 1rem;
+  }
+  
+  .signup-container h1::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 3px;
+    background: linear-gradient(90deg, #2d6a4f 0%, #40916c 100%);
+  }
+  
+  /* ========== FORM ELEMENTS ========== */
+  .signup-form-columns {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+  }
+  
+  .input-field {
+    position: relative;
+    margin-bottom: 1.5rem;
+  }
+  
+  .input-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    color: #475569;
+    font-weight: 500;
+    transition: all 0.3s ease;
+  }
+  
+  .signup-container input {
+    width: 100%;
+    padding: 0.8rem 1.2rem;
+    font-size: 1rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 0.75rem;
+    background: #f8fafc;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    outline: none;
+  }
+  
+  .signup-container input:focus {
+    /* border-color: #2d6a4f; */
+    background: #ffffff;  
+    border: #ffffff;
+    box-shadow: 0 0 0 3px rgba(4, 90, 51, 0.2);
+
+  }
+  
+  .signup-container input::placeholder {
+    color: #94a3b8;
+  }
+  
+  /* ========== BUTTON ========== */
+  .signup-container Button {
+    width: 100%;
+    padding: 1rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border-radius: 0.75rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: linear-gradient(135deg, #2d6a4f 0%, #40916c 100%);
+    color: white;
+    border: none;
+    position: relative;
+    overflow: hidden;
+    margin-top: 20px;
+  }
+  
+  .signup-container Button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(45, 106, 79, 0.3);
+  }
+  
+  .signup-container Button:active {
+    transform: translateY(0);
+  }
+  
+  .signup-container Button::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, transparent 20%, rgba(255, 255, 255, 0.2) 50%, transparent 80%);
+    animation: shine 3s infinite;
+  }
+  
+  @keyframes shine {
+    to {
+      transform: translateX(100%);
+    }
+  }
+  
+  /* ========== ERROR MESSAGE ========== */
+  .signup-error-message {
+    color: #dc2626;
+    font-size: 0.9rem;
+    margin: -1rem 0 1.5rem;
+    padding: 0.75rem;
+    background: #fee2e2;
+    border-radius: 0.5rem;
+    border: 1px solid #fca5a5;
+    animation: slideDown 0.3s ease-out;
+  }
+  
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  /* ========== RESPONSIVE DESIGN ========== */
+  @media (max-width: 768px) {
+    .signup-page {
+      padding: 1rem;
+    }
+  
+    .signup-container {
+      padding: 1.5rem;
+      margin-top: 4rem;
+    }
+  
+    .signup-form-columns {
+      grid-template-columns: 1fr;
+    }
+  
+    .signup-container h1 {
+      margin-bottom: 1.5rem;
+      font-size: 1.8rem;
+    }
+  
+    .signup-container Button {
+      font-size: 1rem;
+      margin-top: 1rem;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .signup-container {
+      padding: 1rem;
+      border-radius: 1rem;
+    }
+  
+    .signup-container input {
+      padding: 0.7rem 1rem;
+    }
+  }
+  .loading-dots {
+    display: inline-flex;
+    gap: 0.3rem;
+  }
+  
+  .loading-dots span {
+    animation: dotPulse 1.4s infinite ease-in-out;
+  }
+  
+  .loading-dots span:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+  
+  .loading-dots span:nth-child(3) {
+    animation-delay: 0.4s;
+  }
+  
+  @keyframes dotPulse {
+    0%, 80%, 100% { transform: translateY(0); }
+    40% { transform: translateY(-5px); }
+  }
