@@ -1,0 +1,208 @@
+/* ========== MAIN CONTAINER ========== */
+.prompt-container {
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', sans-serif;
+  position: relative;
+  width: 100vw;
+  min-height: 100vh;
+  background: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* ========== LEFT CONTENT ========== */
+.prompt-left-content {
+  width: 100%;
+  max-width: 1200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 80px 20px 40px;
+  margin-top: 60px; /* Space for header */
+  flex-grow: 1;
+}
+
+.prompt-main-title {
+  font-size: clamp(24px, 3vw, 32px);
+  color: #2d6a4f;
+  margin: 0 auto 40px;
+  text-align: center;
+  line-height: 1.4;
+  max-width: 800px;
+  font-weight: 600;
+  background: linear-gradient(45deg, #2d6a4f, #40916c);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  padding: 0 20px;
+}
+
+/* ========== CHAT BUBBLES ========== */
+.prompt-bubble {
+  width: 90%;
+  max-width: 760px;
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(0, 75, 35, 0.08);
+  margin: 0 auto 20px;
+  transition: transform 0.2s ease;
+}
+
+.prompt-bubble-input-row {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.prompt-bubble-input-row textarea {
+  flex: 1;
+  min-height: 80px;
+  max-height: 200px;
+  border: none;
+  background: none;
+  padding: 12px;
+  font-size: clamp(14px, 2vw, 16px);
+  resize: none;
+  outline: none;
+  color: #334155;
+  line-height: 1.6;
+  font-family: 'Inter', sans-serif;
+}
+
+/* ========== ANSWER BUBBLE ========== */
+.prompt-bubble-answer {
+  width: 90%;
+  max-width: 760px;
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 24px;
+  margin: 20px auto;
+  color: #334155;
+  font-size: clamp(14px, 2vw, 16px);
+  line-height: 1.6;
+  box-shadow: 0 4px 20px rgba(0, 75, 35, 0.08);
+  animation: fadeIn 0.3s ease;
+}
+
+/* ========== HISTORY SIDEBAR ========== */
+.prompt-navbar {
+  position: fixed;
+  top: 80px;
+  left: 20px;
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 16px;
+  box-shadow: 0 8px 30px rgba(0, 75, 35, 0.08);
+  width: 320px;
+  max-height: calc(100vh - 120px);
+  overflow-y: auto;
+  z-index: 1000;
+}
+
+/* ========== TOGGLE BUTTON ========== */
+.toggle-history-button {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #2d6a4f;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  font-size: 14px;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  z-index: 1001;
+}
+
+/* ========== RESPONSIVE DESIGN ========== */
+@media (max-width: 1024px) {
+  .prompt-navbar {
+    width: 280px;
+    left: 15px;
+  }
+}
+
+@media (max-width: 768px) {
+  .prompt-left-content {
+    padding: 60px 15px 30px;
+    margin-top: 50px;
+  }
+
+  .prompt-main-title {
+    margin-bottom: 30px;
+  }
+
+  .prompt-navbar {
+    width: 100%;
+    top: 60px;
+    left: -100%;
+    height: calc(100vh - 80px);
+    border-radius: 0;
+  }
+
+  .prompt-navbar.active {
+    left: 0;
+  }
+
+  .toggle-history-button {
+    bottom: 15px;
+    padding: 10px 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .prompt-left-content {
+    padding: 40px 10px 20px;
+  }
+
+  .prompt-bubble,
+  .prompt-bubble-answer {
+    width: 95%;
+    padding: 18px;
+  }
+
+  .prompt-send-button {
+    width: 48px;
+    height: 48px;
+  }
+}
+
+.prompt-send-button {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #2d6a4f;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.prompt-send-button:hover {
+  background: #40916c;
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(45, 106, 79, 0.2);
+}
+
+.prompt-send-button img {
+  width: 28px;
+  height: 28px;
+  filter: brightness(0) invert(1);
+}
+
+
+
+
+
+
+
+
+
+
