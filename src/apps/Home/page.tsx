@@ -1,19 +1,22 @@
 import React from 'react';
 import './style.css';
-import arrowDownImg from '../../assets/arrow-down.png';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 const HomePage: React.FC = () => {
+  const navigate = useNavigate();
+  const isLoggedIn = !!localStorage.getItem('userToken'); 
+
+  const handleArrowDoubleClick = () => {
+    if (isLoggedIn) {
+      navigate('/monitor');
+    } else {
+      navigate('/login');
+    }
+  };
+
   return (
-    <div>
-      
-      <div className='home-contain'>
-      <main className="home-main-content">
-        
-      </main>
+    <div className="home-contain" onDoubleClick={handleArrowDoubleClick}>
     </div>
-    </div>
-    
   );
 };
 

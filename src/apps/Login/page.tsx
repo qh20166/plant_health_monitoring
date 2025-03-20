@@ -5,6 +5,7 @@ import Button from "../../components/Button";
 import { auth, provider, db } from "../../components/firebaseConfig";
 import { signInWithPopup, signInWithEmailAndPassword } from "firebase/auth";
 import { collection, query, where, getDocs } from "firebase/firestore";
+import { signInWithRedirect } from "firebase/auth";
 
 const LoginPage: React.FC = () => {
   const [username, setUsername] = useState<string>("");
@@ -59,20 +60,23 @@ const LoginPage: React.FC = () => {
     setIsSubmitting(false);
   };
 
+  
   const handleGoogleLogin = async () => {
     try {
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-      localStorage.setItem("accessToken", user.uid);
-      localStorage.setItem("username", user.displayName || "");
-      localStorage.setItem("avatarUrl", user.photoURL || "/avt.jpg");
-      login();
-      window.location.href = "/monitor";
+        const result = await signInWithPopup(auth, provider);
+        const user = result.user;
+        localStorage.setItem("accessToken", user.uid);
+        localStorage.setItem("username", user.displayName || "");
+        localStorage.setItem("avatarUrl", user.photoURL || "/avt.jpg");
+        login();
+        window.location.href = "/monitor";
+      
     } catch (error) {
       console.error("Google login error:", error);
       setErrorMessage("Đăng nhập với Google thất bại, vui lòng thử lại.");
     }
   };
+  
 
   return (
     <div className="login-page">

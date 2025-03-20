@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from "axios";
 import './style.css';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Legend } from 'recharts';
@@ -12,6 +12,7 @@ import humiIcon from '../../assets/humidity_icon.png';
 import lightOnIcon from '../../assets/lighton_icon.png';
 import lightOffIcon from '../../assets/lightoff_icon.png';
 import sprinkleOnIcon from '../../assets/sprinkleon_icon.png';
+import optionIcon from '../../assets/option_icon.png';
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { db } from '../../components/firebaseConfig';
 
@@ -22,7 +23,7 @@ interface SensorData {
 }
 
 const USERNAME = "huy0403";
-const API_KEY = process.env.ADAFRUIT_IO_KEY ?? "";
+const API_KEY = process.env.REACT_APP_ADAFRUIT_IO_KEY ?? "";
 
 const MonitorReportPage: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -40,6 +41,45 @@ const MonitorReportPage: React.FC = () => {
   const [showIrrigationModal, setShowIrrigationModal] = useState<boolean>(false);
   const [auto_temp, setAutoTemp] = useState<string>("");
   const [auto_humi, setAutoHumi] = useState<string>("");
+  const [plantStatus, setPlantStatus] = useState<string>("");
+  const [showCalendar, setShowCalendar] = useState<boolean>(false);
+  const [showPlantStatus, setShowPlantStatus] = useState<boolean>(false);
+  const [showOptions, setShowOptions] = useState<boolean>(false);
+
+  const irrigationModalRef = useRef<HTMLDivElement>(null);
+  const calendarRef = useRef<HTMLDivElement>(null);
+  const plantStatusRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        showIrrigationModal &&
+        irrigationModalRef.current &&
+        !irrigationModalRef.current.contains(event.target as Node)
+      ) {
+        setShowIrrigationModal(false);
+      }
+      if (
+        showCalendar &&
+        calendarRef.current &&
+        !calendarRef.current.contains(event.target as Node)
+      ) {
+        setShowCalendar(false);
+      }
+      if (
+        showPlantStatus &&
+        plantStatusRef.current &&
+        !plantStatusRef.current.contains(event.target as Node)
+      ) {
+        setShowPlantStatus(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showIrrigationModal, showCalendar, showPlantStatus]);
 
   useEffect(() => {
     const fetchHistoricalData = async () => {
@@ -50,7 +90,6 @@ const MonitorReportPage: React.FC = () => {
         const humiRes = await axios.get(
           `https://io.adafruit.com/api/v2/${USERNAME}/feeds/iot-humi/data?X-AIO-Key=${API_KEY}`
         );
-
         const tempData = tempRes.data.slice(0, 30).map((item: { created_at: string; value: string }) => ({
           day: new Date(item.created_at).toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit" }),
           temperature: parseFloat(item.value),
@@ -132,7 +171,7 @@ const MonitorReportPage: React.FC = () => {
       })
       .catch((err) => console.error("Lỗi khi lấy dữ liệu hình ảnh:", err));
 
-    fetch(`https://io.adafruit.com/api/v2/${USERNAME}/feeds/iot-light`, {
+    fetch(`https://io.adafruit.com/api/v2/${USERNAME}/feeds/iot-led`, {
       headers: { "X-AIO-Key": API_KEY }
     })
       .then((res) => res.json())
@@ -174,30 +213,28 @@ const MonitorReportPage: React.FC = () => {
     }
   };
 
-  const handleToggleLight = () => {
-    const newState = lightOn ? "off" : "on";
-    fetch(`https://io.adafruit.com/api/v2/${USERNAME}/feeds/iot-light`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-AIO-Key": API_KEY
-      },
-      body: JSON.stringify({ value: newState })
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.last_value) {
-          setLightOn(data.last_value.toLowerCase() === "on");
-        }
-      })
-      .catch((err) => console.error("Lỗi khi chuyển trạng thái đèn:", err));
+  const handleToggleLight = async (checked: boolean) => {
+    try {
+      const newState = checked ? "ON" : "OFF";
+      const response = await axios.post(
+        `https://io.adafruit.com/api/v2/${USERNAME}/feeds/iot-led/data`,
+        { value: newState },
+        { headers: { "X-AIO-Key": API_KEY } }
+      );
+      if (response.data.value === newState) {
+        setLightOn(checked);
+      }
+    } catch (error) {
+      console.error("Lỗi khi chuyển trạng thái đèn:", error);
+      setLightOn(!checked);
+    }
   };
 
   const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
   const handleCapture = async () => {
     try {
-      const postResponse = await axios.post(
+      await axios.post(
         `https://io.adafruit.com/api/v2/${USERNAME}/feeds/iot-selectimage/data`,
         { value: "1" },
         {
@@ -207,15 +244,23 @@ const MonitorReportPage: React.FC = () => {
           },
         }
       );
-      await delay(8000);
+      await delay(10000);
       const imageResponse = await fetch(`https://io.adafruit.com/api/v2/${USERNAME}/feeds/iot-image`, {
         headers: { "X-AIO-Key": API_KEY }
       });
-
       const imageData = await imageResponse.json();
       if (imageData.last_value) {
         setImageUrl(imageData.last_value);
       }
+      const promptResponse = await fetch(
+        `https://io.adafruit.com/api/v2/${USERNAME}/feeds/iot-prompt`,
+        { headers: { "X-AIO-Key": API_KEY } }
+      );
+      const promptData = await promptResponse.json();
+      if (promptData.last_value) {
+        setPlantStatus(promptData.last_value);
+      }
+      setShowPlantStatus(true);
     } catch (err) {
       console.error("Lỗi:", err);
     }
@@ -223,11 +268,11 @@ const MonitorReportPage: React.FC = () => {
 
   const handleSelectIrrigationMode = async (mode: string, value_temp: string, value_humi: string) => {
     try {
-      const postResponse = await axios.post(
+      await axios.post(
         `https://io.adafruit.com/api/v2/${USERNAME}/feeds/iot-request/data`,
         {
           value: mode,
-          ...(mode === 'auto' ? { value: '!automatic-water' + ':' + value_temp + ':' + value_humi + '#' } : {})
+          ...(mode === 'auto' ? { value: 'automatic-water' + ':' + value_temp + ':' + value_humi } : {})
         },
         {
           headers: {
@@ -245,27 +290,40 @@ const MonitorReportPage: React.FC = () => {
 
   return (
     <div className="mrp-container">
+      <button 
+        className="show-control-button" 
+        onClick={() => setShowOptions(!showOptions)}
+      >
+        <img src={optionIcon} alt="Options" style={{ width: '24px', height: '24px' }} />
+      </button>
+      {showOptions && (
+        <div className="control-panel">
+          <div className="time-control">
+            <label>Chọn giờ:</label>
+            <input type="time" value={selectedTime} onChange={handleTimeChange} step="300" />
+            <button className="time-button" onClick={handleUseCurrentTime}>
+              Sử dụng giờ hiện tại
+            </button>
+          </div>
+          <button className="control-button" onClick={() => setShowIrrigationModal(true)}>
+            Chọn chế độ tưới tiêu
+          </button>
+          <button className="control-button" onClick={() => setShowCalendar(true)}>
+            Chọn Ngày
+          </button>
+        </div>
+      )}
       <div className="mrp-top-info">
         <InfoBox label="Giờ" value={selectedTime} icon={timeIcon} />
         <InfoBox label="Ngày" value={selectedDate.toLocaleDateString()} icon={dateIcon} />
         <InfoBox label="Nhiệt độ" value={temperature !== null ? `${temperature} °C` : 'Đang tải...'} icon={tempIcon} />
         <InfoBox label="Độ ẩm" value={humidity !== null ? `${humidity} %` : 'Đang tải...'} icon={humiIcon} />
-        <InfoBox label="Đèn" value={lightOn ? "Bật" : "Tắt"} iconOn={lightOnIcon} iconOff={lightOffIcon} onChange={handleToggleLight} />
+        <InfoBox label="Đèn" value={lightOn ? "ON" : "OFF"} iconOn={lightOnIcon} iconOff={lightOffIcon} onChange={handleToggleLight} />
         <InfoBox label="Tưới nước" value={""} icon={sprinkleOnIcon} buttonLabel="Kích hoạt" onButtonClick={handleSprinkleAction} />
-      </div>
-      <div className="mrp-time-selector">
-        <label>Chọn giờ:</label>
-        <input type="time" value={selectedTime} onChange={handleTimeChange} step="300" />
-        <button onClick={handleUseCurrentTime}>Sử dụng giờ hiện tại</button>
-      </div>
-      <div className="mrp-irrigation-mode-section">
-        <button className="mrp-irrigation-mode-button" onClick={() => setShowIrrigationModal(true)}>
-          Chọn chế độ tưới tiêu
-        </button>
       </div>
       {showIrrigationModal && (
         <div className="modal-overlay">
-          <div className="modal-container">
+          <div className="modal-container" ref={irrigationModalRef}>
             <h2>Cài đặt tưới tiêu tự động</h2>
             <table className="irrigation-table">
               <thead>
@@ -308,22 +366,18 @@ const MonitorReportPage: React.FC = () => {
                       onClick={() => {
                         const temp = parseInt(auto_temp, 10);
                         const humi = parseInt(auto_humi, 10);
-
                         if (isNaN(temp) || isNaN(humi)) {
                           alert("Vui lòng nhập đầy đủ nhiệt độ và độ ẩm!");
                           return;
                         }
-
                         if (temp < 10 || temp > 40) {
                           alert("Nhiệt độ phải nằm trong khoảng 10°C - 40°C!");
                           return;
                         }
-
                         if (humi < 0 || humi > 100) {
                           alert("Độ ẩm phải nằm trong khoảng 0% - 100%!");
                           return;
                         }
-
                         handleSelectIrrigationMode("auto", auto_temp, auto_humi);
                       }}
                     >
@@ -336,6 +390,22 @@ const MonitorReportPage: React.FC = () => {
             <button className="modal-close-button" onClick={() => setShowIrrigationModal(false)}>
               Đóng
             </button>
+          </div>
+        </div>
+      )}
+      {showCalendar && (
+        <div className="result-modal">
+          <div className="modal-content" ref={calendarRef}>
+            <span className="close" onClick={() => setShowCalendar(false)}>&times;</span>
+            <h2>Chọn ngày</h2>
+            <Calendar
+              onChange={(date) => {
+                setSelectedDate(date as Date);
+                setShowCalendar(false);
+              }}
+              value={selectedDate}
+              className="custom-calendar"
+            />
           </div>
         </div>
       )}
@@ -362,13 +432,7 @@ const MonitorReportPage: React.FC = () => {
               <XAxis dataKey="day" />
               <YAxis
                 width={60}
-                tick={{
-                  style: {
-                    textAnchor: 'middle',
-                    dominantBaseline: 'middle',
-                    fontSize: '14px'
-                  }
-                }}
+                tick={{ style: { textAnchor: 'middle', dominantBaseline: 'middle', fontSize: '14px' } }}
               />
               <Tooltip />
               <Legend />
@@ -381,13 +445,7 @@ const MonitorReportPage: React.FC = () => {
               <YAxis
                 width={60}
                 domain={[0, 100]}
-                tick={{
-                  style: {
-                    textAnchor: 'middle',
-                    dominantBaseline: 'middle',
-                    fontSize: '14px'
-                  }
-                }}
+                tick={{ style: { textAnchor: 'middle', dominantBaseline: 'middle', fontSize: '14px' } }}
               />
               <Tooltip />
               <Legend />
@@ -397,9 +455,6 @@ const MonitorReportPage: React.FC = () => {
         </div>
       </div>
       <div className="mrp-right-side">
-        <div className="mrp-calendar">
-          <Calendar onChange={(date) => setSelectedDate(date as Date)} value={selectedDate} />
-        </div>
         <div>
           <div className="mrp-image-box">
             <img src={`data:image/jpeg;base64,${imageUrl}`} alt="Hình ảnh" />
@@ -407,6 +462,21 @@ const MonitorReportPage: React.FC = () => {
           <button className="mrp-capture-button" onClick={handleCapture}>
             Chụp ảnh
           </button>
+          {showPlantStatus && (
+            <div className="result-modal">
+              <div className="modal-content" ref={plantStatusRef}>
+                <span className="close" onClick={() => setShowPlantStatus(false)}>&times;</span>
+                <h2>Kết quả phân tích</h2>
+                <div className="modal-image">
+                  <img src={`data:image/jpeg;base64,${imageUrl}`} alt="Ảnh vừa chụp" />
+                </div>
+                <div className="status-result">
+                  <h3>Tình trạng cây:</h3>
+                  <p>{plantStatus || "Đang phân tích..."}</p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

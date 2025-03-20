@@ -1,7 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
-import { getFirestore } from "firebase/firestore"; // Import Firestore
-
+import { getFirestore } from "firebase/firestore"; 
 const firebaseConfig = {
   apiKey: "AIzaSyCMDHBWn2eN_vtwQXMr4WaEdDO1EdCmpkE",
   authDomain: "plant-health-monitoring-ab4de.firebaseapp.com",
@@ -18,6 +17,5 @@ provider.setCustomParameters({
   prompt: 'select_account'
 });
 
-const db = getFirestore(app); // Khởi tạo Firestore
-
+const db = getFirestore(app); 
 export { auth, provider, db };

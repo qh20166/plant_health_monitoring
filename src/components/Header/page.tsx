@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import './style.css';
-import { Link } from 'react-router-dom';
 
 interface HeaderProps {
   isAuthenticated?: boolean;
@@ -14,10 +14,11 @@ const Header: React.FC<HeaderProps> = ({ isAuthenticated = false, user }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const avatarRef = useRef<HTMLImageElement>(null);
+  const location = useLocation();
 
   const handleClickOutside = useCallback((event: MouseEvent) => {
     if (
-      dropdownRef.current && 
+      dropdownRef.current &&
       !dropdownRef.current.contains(event.target as Node) &&
       avatarRef.current &&
       !avatarRef.current.contains(event.target as Node)
@@ -32,7 +33,6 @@ const Header: React.FC<HeaderProps> = ({ isAuthenticated = false, user }) => {
     } else {
       document.removeEventListener('click', handleClickOutside);
     }
-
     return () => {
       document.removeEventListener('click', handleClickOutside);
     };
@@ -52,15 +52,23 @@ const Header: React.FC<HeaderProps> = ({ isAuthenticated = false, user }) => {
       <nav className="header-nav-bar">
         <ul className="nav-links">
           <li><Link to="/home">Trang chủ</Link></li>
-          <li><Link to="/monitor">Bảng điều khiển</Link></li>
-          <li><Link to="/prompt">Hỏi đáp</Link></li>
+          {isAuthenticated && (
+            <>
+              <li><Link to="/monitor">Bảng điều khiển</Link></li>
+              <li><Link to="/prompt">Hỏi đáp</Link></li>
+            </>
+          )}
         </ul>
 
         <div className="nav-user">
           {!isAuthenticated ? (
             <div className="auth-buttons">
-              <Link to="/login" className="nav-button">Đăng nhập</Link>
-              <Link to="/signup" className="nav-button signup">Đăng ký</Link>
+              {location.pathname !== '/login' && (
+                <Link to="/login" className="nav-button">Đăng nhập</Link>
+              )}
+              {location.pathname !== '/signup' && (
+                <Link to="/signup" className="nav-button signup">Đăng ký</Link>
+              )}
             </div>
           ) : (
             <div className="user-menu">
