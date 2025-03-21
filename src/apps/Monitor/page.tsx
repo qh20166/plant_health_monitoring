@@ -204,6 +204,7 @@ const MonitorReportPage: React.FC = () => {
           }
         }
       );
+      alert("Đã tưới cây thành công.");
       console.log("Phản hồi POST cho hệ thống tưới nước:", response.data);
       if (response.data.last_value && response.data.last_value.toLowerCase() === "activate") {
         setSprinkleOn(true);
@@ -224,6 +225,7 @@ const MonitorReportPage: React.FC = () => {
       if (response.data.value === newState) {
         setLightOn(checked);
       }
+      alert("Đã chuyển trạng thái của đèn.");
     } catch (error) {
       console.error("Lỗi khi chuyển trạng thái đèn:", error);
       setLightOn(!checked);
