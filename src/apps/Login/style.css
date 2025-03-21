@@ -83,7 +83,8 @@
   
   .input-label {
     display: block;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.1rem;
+    margin-top: 10px;
     font-size: 0.9rem;
     color: #37474f;
     font-weight: 500;
@@ -91,6 +92,8 @@
   }
   
   .login-container input {
+    margin-top: 5px;
+    margin-bottom: 10px;
     width: 100%;
     padding: 0.8rem 1.2rem;
     font-size: 1rem;
