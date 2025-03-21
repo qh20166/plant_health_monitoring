@@ -9,6 +9,8 @@ import LoginPage from './apps/Login/page';
 import SignupPage from './apps/Signup/page';
 import Header from './components/Header/page';
 import ProfilePage from './apps/Profile/page';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 interface UserType {
   username: string;
@@ -52,7 +54,16 @@ const App: React.FC = () => {
   return (
     <Router>
       <AppRoutes isAuthenticated={isAuthenticated} user={user} />
+      <ToastContainer 
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        pauseOnHover
+      />
     </Router>
+    
   );
 };
 

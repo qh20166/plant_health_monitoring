@@ -5,7 +5,7 @@ import { collection, query, where, getDocs, doc, setDoc } from "firebase/firesto
 import Button from "../../components/Button";
 import "./style.css";
 import { auth, db } from "../../components/firebaseConfig";
-
+import { toast } from 'react-toastify';
 interface FormData {
   username: string;
   email: string;
@@ -95,7 +95,7 @@ const SignupPage: React.FC = () => {
         dateofbirth: formData.dateofbirth,
         phonenumber: formData.phonenumber,
       });
-      alert("Đăng ký thành công!");
+      toast.success("Đăng ký thành công!");
       navigate("/login");
     } catch (err: any) {
       switch (err.code) {

@@ -15,6 +15,8 @@ import sprinkleOnIcon from '../../assets/sprinkleon_icon.png';
 import optionIcon from '../../assets/option_icon.png';
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { db } from '../../components/firebaseConfig';
+import { toast } from 'react-toastify';
+
 
 interface SensorData {
   day: string;
@@ -95,22 +97,22 @@ const MonitorReportPage: React.FC = () => {
           temperature: parseFloat(item.value),
           humidity: 0,
         }));
-
+    
         const humiData = humiRes.data.slice(0, 30).map((item: { created_at: string; value: string }) => ({
           day: new Date(item.created_at).toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit" }),
           temperature: 0,
           humidity: parseFloat(item.value),
         }));
-
+    
         const mergedData = tempData.map((tempItem: { day: string; temperature: number }, index: number) => ({
           ...tempItem,
           humidity: humiData[index] ? humiData[index].humidity : 0,
         }));
 
-        setChartData(mergedData);
-      } catch (error) {
-        console.error("Lỗi khi lấy dữ liệu lịch sử:", error);
-      }
+        setChartData([...mergedData].reverse());
+  } catch (error) {
+    console.error("Lỗi khi lấy dữ liệu lịch sử:", error);
+  }
     };
 
     fetchHistoricalData();
@@ -204,7 +206,7 @@ const MonitorReportPage: React.FC = () => {
           }
         }
       );
-      alert("Đã tưới cây thành công.");
+      toast.success("Đã tưới cây thành công.");
       console.log("Phản hồi POST cho hệ thống tưới nước:", response.data);
       if (response.data.last_value && response.data.last_value.toLowerCase() === "activate") {
         setSprinkleOn(true);
@@ -225,7 +227,8 @@ const MonitorReportPage: React.FC = () => {
       if (response.data.value === newState) {
         setLightOn(checked);
       }
-      alert("Đã chuyển trạng thái của đèn.");
+      toast.success("Đã chuyển trạng thái của đèn.");
+
     } catch (error) {
       console.error("Lỗi khi chuyển trạng thái đèn:", error);
       setLightOn(!checked);
@@ -283,7 +286,8 @@ const MonitorReportPage: React.FC = () => {
           },
         }
       );
-      alert("Đã hoàn tất cài đặt chế độ tưới cây.");
+      toast.success("Đã hoàn tất cài đặt chế độ tưới cây.");
+
       setShowIrrigationModal(false);
     } catch (err) {
       console.error("Lỗi:", err);
@@ -369,15 +373,15 @@ const MonitorReportPage: React.FC = () => {
                         const temp = parseInt(auto_temp, 10);
                         const humi = parseInt(auto_humi, 10);
                         if (isNaN(temp) || isNaN(humi)) {
-                          alert("Vui lòng nhập đầy đủ nhiệt độ và độ ẩm!");
+                          toast.error("Vui lòng nhập đầy đủ nhiệt độ và độ ẩm!");
                           return;
                         }
                         if (temp < 10 || temp > 40) {
-                          alert("Nhiệt độ phải nằm trong khoảng 10°C - 40°C!");
+                          toast.error("Nhiệt độ phải nằm trong khoảng 10°C - 40°C!");
                           return;
                         }
                         if (humi < 0 || humi > 100) {
-                          alert("Độ ẩm phải nằm trong khoảng 0% - 100%!");
+                          toast.error("Độ ẩm phải nằm trong khoảng 0% - 100%!");
                           return;
                         }
                         handleSelectIrrigationMode("auto", auto_temp, auto_humi);
