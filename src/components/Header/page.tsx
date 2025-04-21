@@ -55,7 +55,7 @@ const Header: React.FC<HeaderProps> = ({ isAuthenticated = false, user }) => {
           {isAuthenticated && (
             <>
               <li><Link to="/monitor">Bảng điều khiển</Link></li>
-              <li><Link to="/prompt">Hỏi đáp</Link></li>
+              <li><Link to="/prompt">Lịch sử</Link></li>
             </>
           )}
         </ul>

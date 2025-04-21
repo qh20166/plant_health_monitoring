@@ -1,178 +1,125 @@
 import React, { useState, useEffect } from "react";
 import "./style.css";
-import sendIcon from "../../assets/send_icon.png";
-import axios from "axios";
 import {
   collection,
-  addDoc,
   getDocs,
   query,
   orderBy,
-  serverTimestamp,
   DocumentData,
-  where
 } from "firebase/firestore";
 import { db } from "../../components/firebaseConfig";
 
-interface Message {
-  question: string;
-  answer: string;
-  createdAt: string;
+interface AnalysisEntry {
+  imageUrl: string;
+  plantStatus: string;
+  temperature: number;
+  humidity: number;
+  createdAt: any;
 }
 
 const USERNAME = "huy0403";
-const API_KEY = process.env.ADAFRUIT_IO_KEY ?? "";
-
 
 const PromptPage: React.FC = () => {
-  const [question, setQuestion] = useState("");
-  const [answer, setAnswer] = useState("");
-  const [hasAnswer, setHasAnswer] = useState(false);
-  const [messageHistory, setMessageHistory] = useState<Message[]>([]);
-  const [showHistory, setShowHistory] = useState(window.innerWidth > 768);
-  const [isLoading, setIsLoading] = useState(false);
-  const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
+  const [history, setHistory] = useState<AnalysisEntry[]>([]);
+  const [selectedEntry, setSelectedEntry] = useState<AnalysisEntry | null>(null);
+  const [showHistory, setShowHistory] = useState<boolean>(window.innerWidth > 768);
 
-  const fetchHistoryFromFirebase = async () => {
+  const fetchHistory = async () => {
     try {
-      const qRef = query(
-        collection(db, "messages"),
-        where("userId", "==", USERNAME),
+      const q = query(
+        collection(db, "analyses"),
         orderBy("createdAt", "desc")
       );
-      const querySnapshot = await getDocs(qRef);
-      const fetchedHistory: Message[] = [];
-      querySnapshot.forEach((docSnap) => {
+      const snapshot = await getDocs(q);
+      const entries: AnalysisEntry[] = [];
+      snapshot.forEach((docSnap) => {
         const data = docSnap.data() as DocumentData;
-        const timeString = data.createdAt
-          ? data.createdAt.toDate().toISOString()
-          : new Date().toISOString();
-        fetchedHistory.push({
-          question: data.question || "",
-          answer: data.answer || "",
-          createdAt: timeString,
+        entries.push({
+          imageUrl: data.imageUrl || "",
+          plantStatus: data.plantStatus || "",
+          temperature: data.temperature || 0,
+          humidity: data.humidity || 0,
+          createdAt: data.createdAt?.toDate?.() || new Date(),
         });
       });
-      setMessageHistory(fetchedHistory);
-    } catch (error) {
-      console.error("Lỗi khi lấy lịch sử từ Firestore:", error);
+      setHistory(entries);
+    } catch (err) {
+      console.error("Error fetching history:", err);
     }
   };
 
   useEffect(() => {
-    fetchHistoryFromFirebase();
+    fetchHistory();
     const handleResize = () => setShowHistory(window.innerWidth > 768);
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const handleSend = async () => {
-    if (!question.trim() || isLoading) return;
-    setIsLoading(true);
-    setHasAnswer(false);
-    setSelectedMessage(null);
-    const currentDate = new Date().toISOString();
-    
-    try {
-      const postResponse = await axios.post(
-        `https://io.adafruit.com/api/v2/${USERNAME}/feeds/iot-prompt/data`,
-        { value: question },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            "X-AIO-Key": API_KEY,
-          },
-        }
-      );
-      const data = postResponse.data;
-      const fetchedAnswer = data.last_value || "Không có câu trả lời.";
-
-      await addDoc(collection(db, "messages"), {
-        userId: USERNAME,
-        question: question,
-        answer: fetchedAnswer,
-        createdAt: serverTimestamp(),
-      });
-
-      setMessageHistory((prev) => [
-        { question, answer: fetchedAnswer, createdAt: currentDate },
-        ...prev,
-      ]);
-
-      setQuestion("");
-    } catch (error) {
-      console.error("Lỗi khi gửi câu hỏi:", error);
-      setAnswer("Đã có lỗi xảy ra. Vui lòng thử lại sau.");
-      setHasAnswer(true);
-    }
-    setIsLoading(false);
-  };
-
-  const handleHistoryClick = (msg: Message) => {
-    setSelectedMessage(msg);
-    setQuestion(msg.question);
-    setAnswer(msg.answer);
-    setHasAnswer(true);
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", { month: "2-digit", day: "2-digit" });
-  };
+  const formatDate = (date: Date) =>
+    date.toLocaleString("vi-VN", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
 
   return (
     <div className="prompt-container">
-      <button className="toggle-history-button" onClick={() => setShowHistory(!showHistory)}>
+      <button
+        className="toggle-history-button"
+        onClick={() => setShowHistory((v) => !v)}
+      >
         {showHistory ? "Ẩn lịch sử" : "Hiện lịch sử"}
       </button>
+
       {showHistory && (
-        <nav className="prompt-navbar">
-          <h3>Lịch sử tin nhắn</h3>
+        <nav className={`prompt-navbar ${showHistory ? "active" : ""}`}>
+          <h3>Lịch sử phân tích</h3>
           <ul>
-            {messageHistory.map((msg, index) => (
-              <li key={index} onClick={() => handleHistoryClick(msg)} className="history-item">
-                <strong>{formatDate(msg.createdAt)}:</strong>
-                <p className="question-text">{msg.question}</p>
+            {history.map((entry, idx) => (
+              <li
+                key={idx}
+                onClick={() => {
+                  setSelectedEntry(entry);
+                  if (window.innerWidth <= 768) {
+                    setShowHistory(false); // 👉 Tự động ẩn lịch sử khi là mobile
+                  }
+                }}
+                className="history-item"
+              >
+                <strong>{formatDate(new Date(entry.createdAt))}:</strong>
+                <p className="question-text">{entry.plantStatus}</p>
               </li>
             ))}
           </ul>
         </nav>
       )}
+
       <div className="prompt-left-content">
-        {!hasAnswer && <h2 className="prompt-main-title">Vui lòng nhập câu hỏi về tình trạng cây của bạn</h2>}
-        <div className="prompt-bubble">
-          <div className="prompt-bubble-input-row">
-            <textarea
-              placeholder="Ví dụ: Cây của tôi có dấu hiệu bị bệnh không?"
-              value={question}
-              onChange={(e) => setQuestion(e.target.value)}
-              onInput={(e) => {
-                const target = e.target as HTMLTextAreaElement;
-                target.style.height = "auto";
-                target.style.height = target.scrollHeight + "px";
-              }}
-            />
-            <button className="prompt-send-button" onClick={handleSend} disabled={isLoading}>
-              {isLoading ? (
-                <div className="loading-dots">
-                  <span>.</span>
-                  <span>.</span>
-                  <span>.</span>
-                </div>
-              ) : (
-                <img src={sendIcon} alt="Gửi" />
-              )}
-            </button>
-          </div>
-        </div>
-        {hasAnswer && (
+        {selectedEntry ? (
           <div className="prompt-bubble-answer">
             <div className="answer-header">
               <span className="status-indicator"></span>
-              <h3>{selectedMessage ? "Chi tiết tin nhắn" : "Kết quả phân tích"}</h3>
+              <h3 >Chi tiết phân tích</h3>
             </div>
-            <p className="answer-content">{answer}</p>
+            <div className="modal-image">
+              <img
+                src={`data:image/jpeg;base64,${selectedEntry.imageUrl}`}
+                alt="Ảnh phân tích"
+              />
+            </div>
+            <div className="answer-content">
+              <p><strong>Tình trạng cây:</strong> {selectedEntry.plantStatus}</p>
+              <p><strong>Nhiệt độ:</strong> {selectedEntry.temperature} °C</p>
+              <p><strong>Độ ẩm:</strong> {selectedEntry.humidity} %</p>
+              <p><strong>Ngày phân tích:</strong> {formatDate(new Date(selectedEntry.createdAt))}</p>
+            </div>
           </div>
+        ) : (
+          <h2 className="prompt-main-title">
+            Chọn một mục lịch sử để xem chi tiết
+          </h2>
         )}
       </div>
     </div>
