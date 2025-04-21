@@ -13,15 +13,22 @@ import lightOnIcon from '../../assets/lighton_icon.png';
 import lightOffIcon from '../../assets/lightoff_icon.png';
 import sprinkleOnIcon from '../../assets/sprinkleon_icon.png';
 import optionIcon from '../../assets/option_icon.png';
-import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from '../../components/firebaseConfig';
 import { toast } from 'react-toastify';
-
 
 interface SensorData {
   day: string;
   temperature: number;
   humidity: number;
+}
+interface AnalysisData {
+  imageUrl: string;
+  plantStatus: string;
+  temperature: number;
+  humidity: number;
+  createdAt: any;
+
 }
 
 const USERNAME = "huy0403";
@@ -47,10 +54,12 @@ const MonitorReportPage: React.FC = () => {
   const [showCalendar, setShowCalendar] = useState<boolean>(false);
   const [showPlantStatus, setShowPlantStatus] = useState<boolean>(false);
   const [showOptions, setShowOptions] = useState<boolean>(false);
-
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
   const irrigationModalRef = useRef<HTMLDivElement>(null);
   const calendarRef = useRef<HTMLDivElement>(null);
   const plantStatusRef = useRef<HTMLDivElement>(null);
+
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -235,39 +244,53 @@ const MonitorReportPage: React.FC = () => {
     }
   };
 
-  const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
   const handleCapture = async () => {
     try {
+      setIsLoading(true);
+      
+      // Gửi yêu cầu chụp ảnh
       await axios.post(
         `https://io.adafruit.com/api/v2/${USERNAME}/feeds/iot-selectimage/data`,
         { value: "1" },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            "X-AIO-Key": API_KEY,
-          },
-        }
+        { headers: { "Content-Type": "application/json", "X-AIO-Key": API_KEY } }
       );
+      
       await delay(10000);
+      
+      // Lấy dữ liệu ảnh
       const imageResponse = await fetch(`https://io.adafruit.com/api/v2/${USERNAME}/feeds/iot-image`, {
         headers: { "X-AIO-Key": API_KEY }
       });
       const imageData = await imageResponse.json();
-      if (imageData.last_value) {
-        setImageUrl(imageData.last_value);
-      }
-      const promptResponse = await fetch(
-        `https://io.adafruit.com/api/v2/${USERNAME}/feeds/iot-prompt`,
-        { headers: { "X-AIO-Key": API_KEY } }
-      );
+      
+      // Lấy dữ liệu phân tích
+      const promptResponse = await fetch(`https://io.adafruit.com/api/v2/${USERNAME}/feeds/iot-prompt`, {
+        headers: { "X-AIO-Key": API_KEY }
+      });
       const promptData = await promptResponse.json();
-      if (promptData.last_value) {
-        setPlantStatus(promptData.last_value);
-      }
+
+      // Lưu dữ liệu vào Firebase
+      const analysisData: AnalysisData = {
+        imageUrl: imageData.last_value || "",
+        plantStatus: promptData.last_value || "Không có dữ liệu",
+        temperature: temperature || 0,
+        humidity: humidity || 0,
+        createdAt: serverTimestamp()
+      };
+
+      await addDoc(collection(db, "analyses"), analysisData);
+
+      // Cập nhật state và hiển thị
+      if (imageData.last_value) setImageUrl(imageData.last_value);
+      if (promptData.last_value) setPlantStatus(promptData.last_value);
+      
+      toast.success("Phân tích và lưu dữ liệu thành công!");
       setShowPlantStatus(true);
     } catch (err) {
       console.error("Lỗi:", err);
+      toast.error("Có lỗi xảy ra trong quá trình phân tích!");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -307,9 +330,9 @@ const MonitorReportPage: React.FC = () => {
           <div className="time-control">
             <label>Chọn giờ:</label>
             <input type="time" value={selectedTime} onChange={handleTimeChange} step="300" />
-            <button className="time-button" onClick={handleUseCurrentTime}>
+            {/* <button className="time-button" onClick={handleUseCurrentTime}>
               Sử dụng giờ hiện tại
-            </button>
+            </button> */}
           </div>
           <button className="control-button" onClick={() => setShowIrrigationModal(true)}>
             Chọn chế độ tưới tiêu
@@ -433,7 +456,7 @@ const MonitorReportPage: React.FC = () => {
         </div>
         <div className="mrp-chart-container">
           {chartType === 'temperature' ? (
-            <LineChart width={1000} height={300} data={chartData}>
+            <LineChart width={800} height={300} data={chartData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="day" />
               <YAxis
@@ -445,7 +468,7 @@ const MonitorReportPage: React.FC = () => {
               <Line type="monotone" dataKey="temperature" stroke="#ff7300" name="Nhiệt độ (°C)" />
             </LineChart>
           ) : (
-            <BarChart width={1000} height={300} data={chartData}>
+            <BarChart width={800} height={300} data={chartData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="day" />
               <YAxis
@@ -466,8 +489,19 @@ const MonitorReportPage: React.FC = () => {
             <img src={`data:image/jpeg;base64,${imageUrl}`} alt="Hình ảnh" />
           </div>
           <button className="mrp-capture-button" onClick={handleCapture}>
-            Chụp ảnh
+            Phân tích
           </button>
+          {isLoading && (
+          <div className="loader-overlay">
+            <div className="lds-ellipsis">
+              <div></div>
+              <div></div>
+              <div></div>
+              <div></div>
+            </div>
+            <div className="loading-text">Đang phân tích...</div>
+          </div>
+          )}
           {showPlantStatus && (
             <div className="result-modal">
               <div className="modal-content" ref={plantStatusRef}>
